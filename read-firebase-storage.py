@@ -1,0 +1,83 @@
+import firebase_admin
+from firebase_admin import credentials, storage
+import numpy as np
+import pickle
+import pandas as pd
+import os
+
+def download_blob(bucket, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    # The ID of your GCS bucket
+    # bucket_name = "your-bucket-name"
+
+    # The ID of your GCS object
+    # source_blob_name = "storage-object-name"
+
+    # The path to which the file should be downloaded
+    # destination_file_name = "local/path/to/file"
+
+    # storage_client = storage.Client()
+    #
+    # bucket = storage_client.bucket(bucket_name)
+
+    # Construct a client side representation of a blob.
+    # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
+    # any content from Google Cloud Storage. As we don't need additional data,
+    # using `Bucket.blob` is preferred here.
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+
+    print(
+        "Downloaded storage object from bucket {} to local file {}.".format(
+            source_blob_name, destination_file_name
+        )
+    )
+
+
+# Place credentials in same folder and change variable
+FIREBASE_CREDENTIALS_PATH = "credentials/biome-app-2-firebase-adminsdk-soxoo-b3f1bf7e27.json"
+
+IMAGE_DIRECTORY = "image"
+IMAGE_EXTENSION = ".jpg"
+MASK_DIRECTORY = "mask"
+MASK_EXTENSION = ".png"
+
+# Make output directories
+image_path = os.path.join(os.getcwd(), IMAGE_DIRECTORY)
+mask_path = os.path.join(os.getcwd(), MASK_DIRECTORY)
+
+# Create paths if they don't exist
+if not os.path.exists(image_path):
+    os.mkdir(image_path)
+
+if not os.path.exists(mask_path):
+    os.mkdir(mask_path)
+
+
+cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+firebase_admin.initialize_app(cred, {'storageBucket': 'biome-app-2.appspot.com'})
+
+
+
+bucket = storage.bucket()
+# bucket.blob("vdbh-mask/pinus-clausa/2022-01-09-14-05-34-R883").download_to_filename("test.jpg")
+
+
+mask_filenames = [blob.name for blob in list(bucket.list_blobs()) if "vdbh-mask" in blob.name]
+image_filenames = [blob.name for blob in list(bucket.list_blobs()) if "vdbh-image" in blob.name]
+
+print(mask_filenames)
+print(image_filenames)
+
+for filename in mask_filenames:
+    destination_filename = filename.split("/")[-1]
+    destination_filename = os.path.join(mask_path, destination_filename.split(".")[0] + MASK_EXTENSION)
+    download_blob(bucket, filename, destination_filename)
+
+for filename in image_filenames:
+    destination_filename = filename.split("/")[-1]
+    destination_filename = os.path.join(image_path, destination_filename.split(".")[0] + IMAGE_EXTENSION)
+    download_blob(bucket, filename, destination_filename)
+
+
+# download_blob(bucket, "vdbh-mask", "2022-01-09-14-05-34-R883")

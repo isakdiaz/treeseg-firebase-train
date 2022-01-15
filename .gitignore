@@ -1,0 +1,12 @@
+# Pycharm
+.idea/
+
+# Firebase Keys
+credentials/
+
+# Firebase downloaded files
+image/
+mask/
+
+# Random Files
+.DS_Store
