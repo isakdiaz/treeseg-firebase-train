@@ -27,7 +27,7 @@ if __name__ == "__main__":
     firebase_admin.initialize_app(cred)
 
     db = firestore.client()  # this connects to our Firestore database
-    # collection = db.collection("mask-coordinates").document("magnolia-grandiflora").collection("2022-01-09-17-47-31-R268")  # opens 'diameter-measurements' collection
+    collection = db.collection("mask-coordinates").document("pinus-clausa").collection("2022-01-09-17-40-53-R220")  # opens 'diameter-measurements' collection
     #
     results = np.empty((0,3), float)
     # results = [[1,2,3]]
@@ -40,11 +40,12 @@ if __name__ == "__main__":
         #print(document.id)
         for collect in document.collections():
             collectId = collect.id
-            # print(type(collectId))
+            # print(collectId)
             # LIST SELECTIONS
             for final_doc in (collect.get()):
                 firebaseDB[collectId] = firebaseDB.get(collectId, []) + [final_doc.to_dict()]
                 # print(firebaseDB)
+
 
     print(f"Finished writing mask coordinate database from {MASK_COORDINATE_FOLDER} to Pickle File: {OUTPUT_PATH}")
     # print(firebaseDB)

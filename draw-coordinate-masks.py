@@ -40,20 +40,21 @@ if __name__ == "__main__":
     count = 0
     for key in firebaseDb.keys():
         # print(key)
-        x_points = np.array(firebaseDb[key][0]['x'])
-        y_points = np.array(firebaseDb[key][0]['y'])
-
-        # Original Pts from  -0.5 to 0.5, need to remap to 0 to 512
-        # Note, firebaseDb points increase from bottom-left to top-right while openCV images increase from top-left to bottom-right
-        # Vertical flip necessary to align
-        x_points = (x_points + 0.5) * 512
-        y_points = (y_points + 0.5) * 512
-        zipped_pts = list(zip(x_points, y_points))
-
         img = create_black_img()
-        pts = np.array(zipped_pts, np.int32)
-        pts = pts.reshape((-1, 1, 2))
-        cv.fillPoly(img, [pts], (255, 255, 255))
+
+        for i in range(len(firebaseDb[key])):
+            x_points = np.array(firebaseDb[key][i]['x'])
+            y_points = np.array(firebaseDb[key][i]['y'])
+
+            # Original Pts from  -0.5 to 0.5, need to remap to 0 to 512
+            # Note, firebaseDb points increase from bottom-left to top-right while openCV images increase from top-left to bottom-right
+            # Vertical flip necessary to align
+            x_points = (x_points + 0.5) * 512
+            y_points = (y_points + 0.5) * 512
+            zipped_pts = list(zip(x_points, y_points))
+            pts = np.array(zipped_pts, np.int32)
+            pts = pts.reshape((-1, 1, 2))
+            cv.fillPoly(img, [pts], (255, 255, 255))
 
         # Flip vertically due to Unity and OpenCV having different coordinate systems
         img = cv.flip(img, 0)
