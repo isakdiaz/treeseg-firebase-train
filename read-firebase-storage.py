@@ -36,15 +36,18 @@ def download_blob(bucket, source_blob_name, destination_file_name):
 
 # Place credentials in same folder and change variable
 FIREBASE_CREDENTIALS_PATH = "credentials/biome-app-2-firebase-adminsdk-soxoo-b3f1bf7e27.json"
+FIREBASE_IMAGE_FOLDER = "vdbh-image"
+FIREBASE_MASK_FOLDER = "vdbh-mask"
 
-IMAGE_DIRECTORY = "image"
-IMAGE_EXTENSION = ".jpg"
-MASK_DIRECTORY = "mask"
-MASK_EXTENSION = ".png"
+# Save options
+IMAGE_SAVE_DIRECTORY = "image"
+IMAGE_SAVE_EXTENSION = ".jpg"
+MASK_SAVE_DIRECTORY = "mask"
+MASK_SAVE_EXTENSION = ".png"
 
 # Make output directories
-image_path = os.path.join(os.getcwd(), IMAGE_DIRECTORY)
-mask_path = os.path.join(os.getcwd(), MASK_DIRECTORY)
+image_path = os.path.join(os.getcwd(), IMAGE_SAVE_DIRECTORY)
+mask_path = os.path.join(os.getcwd(), MASK_SAVE_DIRECTORY)
 
 # Create paths if they don't exist
 if not os.path.exists(image_path):
@@ -63,21 +66,27 @@ bucket = storage.bucket()
 # bucket.blob("vdbh-mask/pinus-clausa/2022-01-09-14-05-34-R883").download_to_filename("test.jpg")
 
 
-mask_filenames = [blob.name for blob in list(bucket.list_blobs()) if "vdbh-mask" in blob.name]
-image_filenames = [blob.name for blob in list(bucket.list_blobs()) if "vdbh-image" in blob.name]
+mask_filenames = [blob.name for blob in list(bucket.list_blobs()) if FIREBASE_MASK_FOLDER in blob.name]
+image_filenames = [blob.name for blob in list(bucket.list_blobs()) if FIREBASE_IMAGE_FOLDER in blob.name]
 
-print(mask_filenames)
-print(image_filenames)
 
+mask_count = 0
 for filename in mask_filenames:
     destination_filename = filename.split("/")[-1]
-    destination_filename = os.path.join(mask_path, destination_filename.split(".")[0] + MASK_EXTENSION)
+    destination_filename = os.path.join(mask_path, destination_filename.split(".")[0] + MASK_SAVE_EXTENSION)
     download_blob(bucket, filename, destination_filename)
+    mask_count += 1
 
+image_count = 0
 for filename in image_filenames:
     destination_filename = filename.split("/")[-1]
-    destination_filename = os.path.join(image_path, destination_filename.split(".")[0] + IMAGE_EXTENSION)
+    destination_filename = os.path.join(image_path, destination_filename.split(".")[0] + IMAGE_SAVE_EXTENSION)
     download_blob(bucket, filename, destination_filename)
+    image_count += 1
+
+
+print(f"Finished saving {mask_count} mask captures from {FIREBASE_MASK_FOLDER} folder on Firebase Storage.")
+print(f"Finished saving {image_count} image captures from {FIREBASE_IMAGE_FOLDER} folder on Firebase Storage.")
 
 
 # download_blob(bucket, "vdbh-mask", "2022-01-09-14-05-34-R883")

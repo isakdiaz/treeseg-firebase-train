@@ -17,36 +17,37 @@ def write_dictionary(filename, dictionary):
     print(f"Pickle file {filename} written from firebase database with {len(dictionary.keys())} entries.")
 
 
-# Place credentials in same folder and change variable
-FIREBASE_CREDENTIALS_PATH = "credentials/biome-app-2-firebase-adminsdk-soxoo-b3f1bf7e27.json"
-OUTPUT_PATH = "firebase-measurements.csv"
+if __name__ == "__main__":
+    # Place credentials in same folder and change variable
+    FIREBASE_CREDENTIALS_PATH = "credentials/biome-app-2-firebase-adminsdk-soxoo-b3f1bf7e27.json"
+    MASK_COORDINATE_FOLDER = "mask-coordinates"
+    OUTPUT_PATH = "firebase-db.pkl"
 
-cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-firebase_admin.initialize_app(cred)
+    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    firebase_admin.initialize_app(cred)
 
-db = firestore.client()  # this connects to our Firestore database
-collection = db.collection("mask-coordinates").document("magnolia-grandiflora").collection("2022-01-09-17-47-31-R268")  # opens 'diameter-measurements' collection
+    db = firestore.client()  # this connects to our Firestore database
+    # collection = db.collection("mask-coordinates").document("magnolia-grandiflora").collection("2022-01-09-17-47-31-R268")  # opens 'diameter-measurements' collection
+    #
+    results = np.empty((0,3), float)
+    # results = [[1,2,3]]
 
-results = np.empty((0,3), float)
-# results = [[1,2,3]]
+    firebaseDB = dict()
 
-firebaseDB = dict()
+    # LIST SPECIES (species name not used in masks)
+    for document in (db.collection(MASK_COORDINATE_FOLDER).list_documents()):
+        # LIST SNAPSHOTS
+        #print(document.id)
+        for collect in document.collections():
+            collectId = collect.id
+            # print(type(collectId))
+            # LIST SELECTIONS
+            for final_doc in (collect.get()):
+                firebaseDB[collectId] = firebaseDB.get(collectId, []) + [final_doc.to_dict()]
+                # print(firebaseDB)
 
-# LIST SPECIES (species name not used in masks)
-for document in (db.collection("mask-coordinates").list_documents()):
-    # LIST SNAPSHOTS
-    #print(document.id)
-    for collect in document.collections():
-        # print(collect.id)
-        collectId = collect.id
-        print(type(collectId))
-        # LIST SELECTIONS
-        for final_doc in (collect.get()):
-            firebaseDB[collectId] = firebaseDB.get(collectId, []) + [final_doc.to_dict()]
-            print(firebaseDB)
-
-print("Database")
-print(firebaseDB)
-write_dictionary("firebase-db.pkl", firebaseDB)
+    print(f"Finished writing mask coordinate database from {MASK_COORDINATE_FOLDER} to Pickle File: {OUTPUT_PATH}")
+    # print(firebaseDB)
+    write_dictionary(OUTPUT_PATH, firebaseDB)
 
 
